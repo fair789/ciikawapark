@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>キャスト専用：ステッカー管理</title>
+    <style>
+        :root {
+            --main-pink: #ffb6c1;
+            --dark-pink: #ff69b4;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+        }
+        * { box-sizing: border-box; }
+        body {
+            background-color: #fff0f5;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            text-align: center;
+            color: #444;
+            margin: 0;
+            padding: 20px 10px 40px;
+        }
+        .container { max-width: 460px; margin: 0 auto; }
+
+        /* 吹き出し */
+        .speech-bubble {
+            background: white;
+            border-radius: 20px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            font-weight: bold;
+            border: 2px solid #ddd;
+            box-shadow: 0 4px 0 #ddd;
+            font-size: 1rem;
+        }
+
+        /* メッセージ */
+        .msg {
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 14px;
+            font-weight: bold;
+            font-size: 0.92rem;
+        }
+        .msg-success { background: #e8f8f0; border: 2px solid #6dca9a; color: #2a7a50; }
+        .msg-error   { background: #fdecea; border: 2px solid #e07070; color: #b03030; }
+
+        /* メインカード */
+        .main-card {
+            background: white;
+            border: 4px solid var(--main-pink);
+            border-radius: 30px;
+            padding: 22px 20px 18px;
+            box-shadow: 0 10px 0 var(--main-pink);
+            margin-bottom: 20px;
+        }
+        .card-title {
+            color: var(--dark-pink);
+            font-size: 1.2rem;
+            margin: 0 0 16px;
+            font-weight: bold;
+        }
+
+        /* 統計グリッド */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            background: #fffaf0;
+            border: 2px dashed var(--main-pink);
+            border-radius: 18px;
+            padding: 12px 8px;
+        }
+        .label {
+            font-size: 0.78rem;
+            color: #999;
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+        .value { font-size: 1.55rem; font-weight: bold; color: var(--dark-pink); }
+        .unit  { font-size: 0.85rem; color: #666; margin-left: 2px; }
+
+        /* プログレスバー */
+        .progress-box { margin-bottom: 18px; }
+        .bar-bg {
+            background: #eee;
+            border-radius: 20px;
+            height: 28px;
+            border: 2px solid var(--main-pink);
+            overflow: hidden;
+        }
+        .bar-fill {
+            background: linear-gradient(to right, var(--main-pink), var(--dark-pink));
+            height: 100%;
+            border-radius: 20px;
+            transition: width 1.2s ease-out;
+        }
+        .progress-label {
+            font-weight: bold;
+            margin-top: 8px;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        /* 入力フォーム */
+        .input-area {
+            background: #fff0f5;
+            padding: 16px;
+            border-radius: 18px;
+            border: 1px solid #eee;
+        }
+        .input-area p {
+            margin: 0 0 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #666;
+        }
+        .input-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+        input[type="text"],
+        input[type="number"] {
+            padding: 9px 12px;
+            border-radius: 10px;
+            border: 2px solid var(--main-pink);
+            font-size: 1rem;
+            text-align: center;
+        }
+        input[type="text"]   { width: 120px; }
+        input[type="number"] { width: 72px; }
+        .input-btn {
+            background: var(--dark-pink);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: transform 0.15s;
+        }
+        .input-btn:hover { transform: scale(1.07); }
+
+        /* サブカード共通 */
+        .sub-card {
+            background: white;
+            border: 3px solid var(--main-pink);
+            border-radius: 24px;
+            padding: 16px 18px;
+            box-shadow: 0 6px 0 var(--main-pink);
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .sub-card-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--dark-pink);
+            margin: 0 0 12px;
+            text-align: center;
+        }
+
+        /* ランキング */
+        .rank-list { list-style: none; margin: 0; padding: 0; }
+        .rank-item {
+            display: flex;
+            align-items: center;
+            padding: 7px 4px;
+            border-bottom: 1px dashed #f0d0d8;
+            font-size: 0.92rem;
+        }
+        .rank-item:last-child { border-bottom: none; }
+        .rank-medal { font-size: 1.25rem; width: 32px; flex-shrink: 0; text-align: center; }
+        .rank-name  { flex: 1; font-weight: bold; color: #444; }
+        .rank-count { font-weight: bold; color: var(--dark-pink); }
+
+        /* 最近の報告 */
+        .recent-list { list-style: none; margin: 0; padding: 0; }
+        .recent-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 4px;
+            border-bottom: 1px dashed #f0d0d8;
+            font-size: 0.88rem;
+            color: #555;
+        }
+        .recent-item:last-child { border-bottom: none; }
+        .recent-name { font-weight: bold; color: #444; }
+        .recent-count { color: var(--dark-pink); font-weight: bold; }
+        .recent-date  { color: #aaa; font-size: 0.8rem; margin-left: 6px; }
+
+        .empty-note { color: #bbb; font-size: 0.85rem; text-align: center; padding: 8px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 吹き出し -->
+    <div class="speech-bubble">
+        ✨ {{ comment }} ✨
+    </div>
+
+    <!-- フラッシュメッセージ -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="msg {% if message.tags == 'error' %}msg-error{% else %}msg-success{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- メインカード -->
+    <div class="main-card">
+        <p class="card-title">ステッカー配布状況</p>
+
+        <div class="stat-grid">
+            <div class="stat-item">
+                <span class="label">今日の配布</span>
+                <span class="value">{{ today_count }}<span class="unit">枚</span></span>
+            </div>
+            <div class="stat-item">
+                <span class="label">今月の目標</span>
+                <span class="value">{{ goal_total }}<span class="unit">枚</span></span>
+            </div>
+            <div class="stat-item">
+                <span class="label">今月の累計</span>
+                <span class="value">{{ cumulative_total }}<span class="unit">枚</span></span>
+            </div>
+            <div class="stat-item">
+                <span class="label">達成割合</span>
+                <span class="value">{{ progress_rate }}<span class="unit">%</span></span>
+            </div>
+        </div>
+
+        <div class="progress-box">
+            <div class="bar-bg">
+                <div class="bar-fill" style="width: {{ progress_rate }}%;"></div>
+            </div>
+            <p class="progress-label">{{ progress_rate }}% 達成ッ！</p>
+        </div>
+
+        <!-- 配布報告フォーム -->
+        <form method="POST" class="input-area">
+            {% csrf_token %}
+            <p>配った枚数を入力して報告してね！</p>
+            <div class="input-row">
+                <input type="text" name="cast_name" placeholder="名前" maxlength="50">
+                <input type="number" name="count" required min="1" placeholder="枚数">
+                <button type="submit" class="input-btn">報告ッ！</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 今月のランキング -->
+    <div class="sub-card">
+        <p class="sub-card-title">🏆 今月のランキング</p>
+        {% if ranking %}
+            <ul class="rank-list">
+                {% for r in ranking %}
+                <li class="rank-item">
+                    <span class="rank-medal">{{ r.medal }}</span>
+                    <span class="rank-name">{{ r.name }}</span>
+                    <span class="rank-count">{{ r.total }}枚</span>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-note">まだ記録がないよッ！最初に報告しよッ！</p>
+        {% endif %}
+    </div>
+
+    <!-- 最近の報告 -->
+    <div class="sub-card">
+        <p class="sub-card-title">📝 最近の報告</p>
+        {% if recent_records %}
+            <ul class="recent-list">
+                {% for r in recent_records %}
+                <li class="recent-item">
+                    <span class="recent-name">{{ r.cast_name|default:"匿名" }}</span>
+                    <span>
+                        <span class="recent-count">{{ r.count }}枚</span>
+                        <span class="recent-date">{{ r.date|date:"m/d" }}</span>
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-note">まだ報告がないよッ！</p>
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+</html>

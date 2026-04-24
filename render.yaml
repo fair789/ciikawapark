@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: ciikawapark
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.13.0"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/src
+      sizeGB: 1
